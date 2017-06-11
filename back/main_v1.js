@@ -16,7 +16,7 @@
 'use strict';
 
 // Initializes NOVA.
-function NOVA() {
+function FriendlyChat() {
   this.checkSetup();
 
   // Shortcuts to DOM Elements.
@@ -24,8 +24,8 @@ function NOVA() {
   this.messageForm = document.getElementById('message-form');
   this.messageInput = document.getElementById('message');
   this.submitButton = document.getElementById('submit');
-  // this.submitImageButton = document.getElementById('submitImage');
-  // this.imageForm = document.getElementById('image-form');
+  this.submitImageButton = document.getElementById('submitImage');
+  this.imageForm = document.getElementById('image-form');
   this.mediaCapture = document.getElementById('mediaCapture');
   this.userPic = document.getElementById('user-pic');
   this.userName = document.getElementById('user-name');
@@ -44,17 +44,17 @@ function NOVA() {
   this.messageInput.addEventListener('change', buttonTogglingHandler);
 
   // Events for image upload.
-  // this.submitImageButton.addEventListener('click', function(e) {
-  //   e.preventDefault();
-  //   this.mediaCapture.click();
-  // }.bind(this));
-  // this.mediaCapture.addEventListener('change', this.saveImageMessage.bind(this));
+  this.submitImageButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    this.mediaCapture.click();
+  }.bind(this));
+  this.mediaCapture.addEventListener('change', this.saveImageMessage.bind(this));
 
   this.initFirebase();
 }
 
 // Sets up shortcuts to Firebase features and initiate firebase auth.
-NOVA.prototype.initFirebase = function() {
+FriendlyChat.prototype.initFirebase = function() {
     // Shortcuts to Firebase SDK features.
     this.auth = firebase.auth();
     this.database = firebase.database();
@@ -64,7 +64,7 @@ NOVA.prototype.initFirebase = function() {
 };
 
 // Loads chat messages history and listens for upcoming ones.
-NOVA.prototype.loadMessages = function() {
+FriendlyChat.prototype.loadMessages = function() {
     // Reference to the /messages/ database path.
     this.messagesRef = this.database.ref('messages');
     // Make sure we remove all previous listeners.
@@ -77,44 +77,10 @@ NOVA.prototype.loadMessages = function() {
     }.bind(this);
     this.messagesRef.limitToLast(12).on('child_added', setMessage);
     this.messagesRef.limitToLast(12).on('child_changed', setMessage);
-
-    this.usersRef = this.database.ref('users');
-    this.usersRef.off();
-
-    var setUsersInfo = function (data) {
-        var val = data.val();
-        this.displayUserInfo(data.key, val.curtID);
-    }.bind(this);
-    this.usersRef.limitToLast(12).on('child_added', setUsersInfo);
-    this.usersRef.limitToLast(12).on('child_changed', setUsersInfo);
 };
 
-NOVA.prototype.displayUserInfo = function (key, curtID) {
-    var div = document.getElementById(key);
-    if(!div){
-        var container = document.createElement('div');
-        container.innerHTML = NOVA.MESSAGE_TEMPLATE;
-        div = container.firstChild;
-        div.setAttribute('id', key);
-        this.messageList.appendChild(div);
-    }
-    div.querySelector('.name').textContent = "ceshi";
-    var messageElement = div.querySelector('.message');
-
-    messageElement.textContent = curtID;
-    messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
-
-    setTimeout(function () {
-        div.classList.add('visible')
-    }, 1);
-    this.messageList.scrollTop = this.messageList.scrollHeight;
-    this.messageInput.focus();
-
-}
-
-
 // Saves a new message on the Firebase DB.
-NOVA.prototype.saveMessage = function(e) {
+FriendlyChat.prototype.saveMessage = function(e) {
   e.preventDefault();
   // Check that the user entered a message and is signed in.
   if (this.messageInput.value && this.checkSignedInWithMessage()) {
@@ -125,7 +91,7 @@ NOVA.prototype.saveMessage = function(e) {
 };
 
 // Sets the URL of the given img element with the URL of the image stored in Cloud Storage.
-NOVA.prototype.setImageUrl = function(imageUri, imgElement) {
+FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
   imgElement.src = imageUri;
 
   // TODO(DEVELOPER): If image is on Cloud Storage, fetch image URL and set img element's src.
@@ -133,12 +99,12 @@ NOVA.prototype.setImageUrl = function(imageUri, imgElement) {
 
 // Saves a new message containing an image URI in Firebase.
 // This first saves the image in Firebase storage.
-NOVA.prototype.saveImageMessage = function(event) {
+FriendlyChat.prototype.saveImageMessage = function(event) {
   event.preventDefault();
   var file = event.target.files[0];
 
   // Clear the selection in the file picker input.
-  // this.imageForm.reset();
+  this.imageForm.reset();
 
   // Check if the file is an image.
   if (!file.type.match('image.*')) {
@@ -158,17 +124,17 @@ NOVA.prototype.saveImageMessage = function(event) {
 };
 
 // Signs-in Friendly Chat.
-NOVA.prototype.signIn = function() {
+FriendlyChat.prototype.signIn = function() {
 
 };
 
 // Signs-out of Friendly Chat.
-NOVA.prototype.signOut = function() {
+FriendlyChat.prototype.signOut = function() {
     this.auth.signOut();
 };
 
 // Triggers when the auth state change for instance when the user signs-in or signs-out.
-NOVA.prototype.onAuthStateChanged = function(user) {
+FriendlyChat.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
     // Get profile pic and user's name from the Firebase user object.
     var profilePicUrl = null;   // TODO(DEVELOPER): Get profile pic.
@@ -203,7 +169,7 @@ NOVA.prototype.onAuthStateChanged = function(user) {
 };
 
 // Returns true if user is signed-in. Otherwise false and displays a message.
-NOVA.prototype.checkSignedInWithMessage = function() {
+FriendlyChat.prototype.checkSignedInWithMessage = function() {
   /* TODO(DEVELOPER): Check if user is signed-in Firebase. */
   if(this.auth.currentUser){
     return true;
@@ -219,23 +185,23 @@ NOVA.prototype.checkSignedInWithMessage = function() {
 };
 
 // Saves the messaging device token to the datastore.
-NOVA.prototype.saveMessagingDeviceToken = function() {
+FriendlyChat.prototype.saveMessagingDeviceToken = function() {
   // TODO(DEVELOPER): Save the device token in the realtime datastore
 };
 
 // Requests permissions to show notifications.
-NOVA.prototype.requestNotificationsPermissions = function() {
+FriendlyChat.prototype.requestNotificationsPermissions = function() {
   // TODO(DEVELOPER): Request permissions to send notifications.
 };
 
 // Resets the given MaterialTextField.
-NOVA.resetMaterialTextfield = function(element) {
+FriendlyChat.resetMaterialTextfield = function(element) {
   element.value = '';
   element.parentNode.MaterialTextfield.boundUpdateClassesHandler();
 };
 
 // Template for messages.
-NOVA.MESSAGE_TEMPLATE =
+FriendlyChat.MESSAGE_TEMPLATE =
     '<div class="message-container">' +
       '<div class="spacing"><div class="pic"></div></div>' +
       '<div class="message"></div>' +
@@ -243,14 +209,14 @@ NOVA.MESSAGE_TEMPLATE =
     '</div>';
 
 // A loading image URL.
-NOVA.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
+FriendlyChat.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
 
-NOVA.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
+FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
     var div = document.getElementById(key);
     // If an element for that message does not exists yet we create it.
     if (!div) {
         var container = document.createElement('div');
-        container.innerHTML = NOVA.MESSAGE_TEMPLATE;
+        container.innerHTML = FriendlyChat.MESSAGE_TEMPLATE;
         div = container.firstChild;
         div.setAttribute('id', key);
         this.messageList.appendChild(div);
@@ -281,7 +247,7 @@ NOVA.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
 
 // Enables or disables the submit button depending on the values of the input
 // fields.
-NOVA.prototype.toggleButton = function() {
+FriendlyChat.prototype.toggleButton = function() {
   if (this.messageInput.value) {
     this.submitButton.removeAttribute('disabled');
   } else {
@@ -290,7 +256,7 @@ NOVA.prototype.toggleButton = function() {
 };
 
 // Checks that the Firebase SDK has been correctly setup and configured.
-NOVA.prototype.checkSetup = function() {
+FriendlyChat.prototype.checkSetup = function() {
   if (!window.firebase || !(firebase.app instanceof Function) || !firebase.app().options) {
     window.alert('You have not configured and imported the Firebase SDK. ' +
         'Make sure you go through the codelab setup instructions and make ' +
@@ -299,5 +265,5 @@ NOVA.prototype.checkSetup = function() {
 };
 
 window.onload = function() {
-  window.friendlyChat = new NOVA();
+  window.friendlyChat = new FriendlyChat();
 };
