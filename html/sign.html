@@ -25,13 +25,14 @@ limitations under the License.
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
 
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="../styles/main.css">
 
     <!-- Import and configure the Firebase SDK -->
     <!-- These scripts are made available when the app is served or deployed on Firebase Hosting -->
     <!-- If you do not serve/host your project using Firebase Hosting see https://firebase.google.com/docs/web/setup -->
     <script src="/__/firebase/4.0.0/firebase-app.js"></script>
     <script src="/__/firebase/4.0.0/firebase-auth.js"></script>
+    <script src="/__/firebase/4.0.0/firebase-database.js"></script>
     <script src="/__/firebase/init.js"></script>
 
     <script type="text/javascript">
@@ -104,12 +105,24 @@ limitations under the License.
                 }
                 console.log(error);
                 // [END_EXCLUDE]
+            }).then(function(user){
+                console.log("User " + user.uid + " created successfully!");
+
+                var firstname = document.getElementById('firstname').value;
+                var lastname = document.getElementById('lastname').value;
+
+                var doctorsRef = firebase.database().ref('doctors');
+                var currentUser = firebase.auth().currentUser;
+                doctorsRef.push({
+                    email:email,
+                    firstname:firstname,
+                    lastname:lastname,
+                    usersList:{}
+                }).catch(function(error){
+                    console.error('There was an error creating doctor account:', error);
+                });
+
             });
-
-            this.auth = firebase.auth();
-            this.database - firebase.database();
-
-
 
             // [END createwithemail]
         }
@@ -232,6 +245,11 @@ limitations under the License.
                     <input class="mdl-textfield__input" style="display:inline;width:auto;" type="text" id="email" name="email" placeholder="Email"/>
                     &nbsp;&nbsp;&nbsp;
                     <input class="mdl-textfield__input" style="display:inline;width:auto;" type="password" id="password" name="password" placeholder="Password"/>
+                    &nbsp;&nbsp;&nbsp;
+                    <input class="mdl-textfield__input" style="display:inline;width:auto;" type="name" id="firstname" name="firstname" placeholder="Firstname"/>
+                    &nbsp;&nbsp;&nbsp;
+                    <input class="mdl-textfield__input" style="display:inline;width:auto;" type="name" id="lastname" name="lastname" placeholder="Lastname"/>
+
                     <br/><br/>
                     <button disabled class="mdl-button mdl-js-button mdl-button--raised" id="quickstart-sign-in" name="signin">Sign In</button>
                     &nbsp;&nbsp;&nbsp;
