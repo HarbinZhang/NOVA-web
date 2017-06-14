@@ -27,9 +27,9 @@ function medicine() {
 
     // Shortcuts to DOM Elements.
     this.messageList = document.getElementById('messages');
-    this.messageForm = document.getElementById('message-form');
-    this.messageInput = document.getElementById('message');
-    this.submitButton = document.getElementById('submit');
+    // this.messageForm = document.getElementById('message-form');
+    // this.messageInput = document.getElementById('message');
+    // this.submitButton = document.getElementById('submit');
     // this.submitImageButton = document.getElementById('submitImage');
     // this.imageForm = document.getElementById('image-form');
     this.mediaCapture = document.getElementById('mediaCapture');
@@ -39,24 +39,33 @@ function medicine() {
     this.signOutButton = document.getElementById('sign-out');
     this.signInSnackbar = document.getElementById('must-signin-snackbar');
 
+    this.addButton = document.getElementById('add');
+    this.medicineName = document.getElementById('et-medicine-name');
+    this.medicineStrength = document.getElementById('et-medicine-strength');
+    this.medicineDuration = document.getElementById('et-medicine-duration');
+    this.medicinePeriod = document.getElementById('et-medicine-period');
+    this.medicineTime = document.getElementById('et-medicine-time');
+
     // Saves message on form submit.
-    this.messageForm.addEventListener('submit', this.saveMessage.bind(this));
+    // this.messageForm.addEventListener('submit', this.saveMessage.bind(this));
     this.signOutButton.addEventListener('click', this.signOut.bind(this));
     // this.signInButton.addEventListener('click', this.signIn.bind(this));
+    this.addButton.addEventListener('click', this.saveMedicine.bind(this));
 
     // Toggle for the button.
-    var buttonTogglingHandler = this.toggleButton.bind(this);
-    this.messageInput.addEventListener('keyup', buttonTogglingHandler);
-    this.messageInput.addEventListener('change', buttonTogglingHandler);
-
-    // Events for image upload.
-    // this.submitImageButton.addEventListener('click', function(e) {
-    //   e.preventDefault();
-    //   this.mediaCapture.click();
-    // }.bind(this));
-    // this.mediaCapture.addEventListener('change', this.saveImageMessage.bind(this));
-
+    // var buttonTogglingHandler = this.toggleButton.bind(this);
+    // this.messageInput.addEventListener('keyup', buttonTogglingHandler);
+    // this.messageInput.addEventListener('change', buttonTogglingHandler);
     this.initFirebase();
+
+
+    this.curtIDRef = this.database.ref('/users/' + this.userID + '/curtID');
+    var self = this;
+    this.curtIDRef.on('value', function(snapshot){
+        self.curtID = snapshot.val();
+        console.log(self.curtID);
+    });
+
 }
 
 // Sets up shortcuts to Firebase features and initiate firebase auth.
@@ -76,14 +85,6 @@ medicine.prototype.initFirebase = function() {
 // Loads chat messages history and listens for upcoming ones.
 medicine.prototype.loadMessages = function() {
 
-    // this.usersRef = this.database.ref('/doctors/' + firebase.auth().currentUser.uid + '/userList');
-    //
-    // var setUsersInfo = function (data) {
-    //     var val = data.val();
-    //     this.displayUserInfo(data.key, val.email, val.firstname, val.lastname);
-    // }.bind(this);
-    // this.usersRef.on('child_added', setUsersInfo);
-    // this.usersRef.on('child_changed', setUsersInfo);
 
     this.medicineRef = this.database.ref('/users/' + this.userID + '/reminders');
 
@@ -147,6 +148,28 @@ medicine.prototype.saveMessage = function(e) {
         });
     }
 };
+
+medicine.prototype.saveMedicine = function (e) {
+    e.preventDefault();
+    if(this.medicineName.value && this.medicineStrength.value && this.medicineDuration.value &&
+            this.medicinePeriod.value && this.medicineTime.value && this.checkSignedInWithMessage()){
+        console.log('ok');
+        this.database.ref('/users/' + this.userID + '/reminders/' + this.medicineName.value).set({
+            duration:this.medicineDuration.value,
+            name:this.medicineName.value,
+            period:this.medicinePeriod.value,
+            time:this.medicineTime.value,
+            strength:this.medicineStrength.value,
+            alarmId:{0:'false',1:this.curtID}
+        }).then(function () {
+            this.database.ref('/users/' + this.userID).update({
+                curtID:this.curtID+10
+            });
+        }.bind(this)).catch(function (error) {
+            console.error('Error writing new medicine to Firebase Database', error);
+        });
+    }
+}
 
 
 // Sets the URL of the given img element with the URL of the image stored in Cloud Storage.

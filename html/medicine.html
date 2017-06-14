@@ -94,14 +94,19 @@
                     <div id="messages">
                         <span id="message-filler"></span>
                     </div>
-                    <form id="message-form" action="#">
-                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <input class="mdl-textfield__input" type="text" id="message">
-                            <label class="mdl-textfield__label" for="message">Typing here</label>
+
+                    <form id="medicine-info">
+                        <div class="medicine-container">
+                            <input class="medicine-name" type="text" id="et-medicine-name" placeholder="medicine name">
+                            <input class="medicine-strength" type="text" id="et-medicine-strength" placeholder="strength">
+                            <input class="medicine-duration" type="text" id="et-medicine-duration" placeholder="duration">
+                            <input class="medicine-period" type="text" id="et-medicine-period" placeholder="period">
+                            <input class="medicine-time" type="text" id="et-medicine-time" placeholder="time">
+                            <button id="add" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+                                ADD
+                            </button>
                         </div>
-                        <button id="submit" disabled type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
-                            Create
-                        </button>
+
                     </form>
                     <!--<form id="image-form" action="#">-->
                     <!--<input id="mediaCapture" type="file" accept="image/*,capture=camera">-->
