@@ -33,7 +33,7 @@ main, #messages-card {
   margin-top: 17px;
 }
 .mdl-grid {
-  max-width: 2048px;
+  width: 100%;
   margin: auto;
 }
 .material-icons {
@@ -46,7 +46,7 @@ main, #messages-card {
   margin: 0 auto;
 }
 .mdl-card__supporting-text {
-  width: auto;
+  width: 100%;
   height: 100%;
   padding-top: 0;
   padding-bottom: 0;
@@ -87,7 +87,8 @@ main, #messages-card {
 }
 .message-container .message {
   display: table-cell;
-  width: calc(100% - 40px);
+  /*width: calc(100% - 40px);*/
+  width:100%;
   padding: 5px 0 5px 10px;
 }
 .message-container .name {
@@ -197,3 +198,50 @@ main, #messages-card {
   top: -1px;
   margin-right: 5px;
 }
+
+#medicine{
+
+}
+.medicine-container{
+  margin:15px;
+  height:30px;
+  width:1200px;
+}
+
+.medicine-name{
+  background-color: #0288D1;
+  width:20%;
+  float:left;
+  padding:10px;
+}
+.medicine-strength{
+  background-color: antiquewhite;
+  width:20%;
+  float:left;
+  padding:10px;
+}
+.medicine-duration{
+  background-color: antiquewhite;
+  width:10%;
+  float:left;
+  padding:10px;
+}
+
+.medicine-period{
+  background-color: antiquewhite;
+  width:10%;
+  float:left;
+  padding:10px;
+}
+
+.medicine-time{
+  background-color: antiquewhite;
+  width:10%;
+  float:left;
+  padding:10px;
+}
+
+.after-box {
+  clear: both;
+}
+

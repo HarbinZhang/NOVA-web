@@ -106,14 +106,14 @@ limitations under the License.
                 console.log(error);
                 // [END_EXCLUDE]
             }).then(function(user){
-                console.log("User " + user.uid + " created successfully!");
+                console.log("User " + firebase.auth().currentUser.uid + " created successfully!");
 
                 var firstname = document.getElementById('firstname').value;
                 var lastname = document.getElementById('lastname').value;
 
                 var doctorsRef = firebase.database().ref('doctors');
                 var currentUser = firebase.auth().currentUser;
-                doctorsRef.push({
+                firebase.database().ref('doctors/'+firebase.auth().currentUser.uid).set({
                     email:email,
                     firstname:firstname,
                     lastname:lastname,

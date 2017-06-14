@@ -63,6 +63,10 @@ NOVA.prototype.initFirebase = function() {
     this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
 };
 
+
+
+
+
 // Loads chat messages history and listens for upcoming ones.
 NOVA.prototype.loadMessages = function() {
     // Reference to the /messages/ database path.
@@ -78,18 +82,26 @@ NOVA.prototype.loadMessages = function() {
     this.messagesRef.limitToLast(12).on('child_added', setMessage);
     this.messagesRef.limitToLast(12).on('child_changed', setMessage);
 
-    this.usersRef = this.database.ref('users');
-    this.usersRef.off();
+    this.usersRef = this.database.ref('/doctors/' + firebase.auth().currentUser.uid + '/userList');
+    // this.UsersRef.on('value', function(snapshot){
+    //    console.log(snapshot.val());
+    //     snapshot.forEach(function (child) {
+    //         // console.log(child.key);
+    //         var val = child.val();
+    //         this.displayUserInfo(child.key, val.email, val.firstname, val.lastname);
+    //     });
+    // });
 
     var setUsersInfo = function (data) {
         var val = data.val();
-        this.displayUserInfo(data.key, val.curtID);
+        this.displayUserInfo(data.key, val.email, val.firstname, val.lastname);
     }.bind(this);
-    this.usersRef.limitToLast(12).on('child_added', setUsersInfo);
-    this.usersRef.limitToLast(12).on('child_changed', setUsersInfo);
+    this.usersRef.on('child_added', setUsersInfo);
+    this.usersRef.on('child_changed', setUsersInfo);
 };
 
-NOVA.prototype.displayUserInfo = function (key, curtID) {
+
+NOVA.prototype.displayUserInfo = function (key, email, firstname, lastname) {
     var div = document.getElementById(key);
     if(!div){
         var container = document.createElement('div');
@@ -98,19 +110,20 @@ NOVA.prototype.displayUserInfo = function (key, curtID) {
         div.setAttribute('id', key);
         this.messageList.appendChild(div);
     }
-    div.querySelector('.name').textContent = "ceshi";
+    div.querySelector('.name').textContent = email;
     var messageElement = div.querySelector('.message');
 
-    messageElement.textContent = curtID;
+    messageElement.textContent = firstname + ' ' + lastname;
     messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
+    messageElement.href = "html/medicine.html#"+key;
 
     setTimeout(function () {
         div.classList.add('visible')
     }, 1);
     this.messageList.scrollTop = this.messageList.scrollHeight;
     this.messageInput.focus();
+};
 
-}
 
 
 // Saves a new message on the Firebase DB.
@@ -209,8 +222,10 @@ NOVA.prototype.signOut = function() {
 NOVA.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
     // Get profile pic and user's name from the Firebase user object.
-    var profilePicUrl = null;   // TODO(DEVELOPER): Get profile pic.
-    var userName = null;        // TODO(DEVELOPER): Get user's name.
+    var profilePicUrl = user.photoUrl;   // TODO(DEVELOPER): Get profile pic.
+    var userName = user.userName;        // TODO(DEVELOPER): Get user's name.
+
+      this.userID = firebase.auth().currentUser.uid;
 
     // Set the user's profile pic and name.
     this.userPic.style.backgroundImage = 'url(' + profilePicUrl + ')';
@@ -277,7 +292,7 @@ NOVA.resetMaterialTextfield = function(element) {
 NOVA.MESSAGE_TEMPLATE =
     '<div class="message-container">' +
       '<div class="spacing"><div class="pic"></div></div>' +
-      '<div class="message"></div>' +
+      '<a  class="message"></a>' +
       '<div class="name"></div>' +
     '</div>';
 
@@ -338,5 +353,5 @@ NOVA.prototype.checkSetup = function() {
 };
 
 window.onload = function() {
-  window.friendlyChat = new NOVA();
+  window.nova = new NOVA();
 };
