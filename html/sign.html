@@ -70,7 +70,11 @@ limitations under the License.
                     }
                     console.log(error);
                     document.getElementById('quickstart-sign-in').disabled = false;
+
                     // [END_EXCLUDE]
+                }).then(function(user){
+                    window.location = "../index.html";
+//                    window.location = "../html/medicine.html";
                 });
                 // [END authwithemail]
             }

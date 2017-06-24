@@ -21,7 +21,14 @@
 function medicine() {
     this.checkSetup();
 
-    this.userID = window.location.hash.substring(1);
+    // var user = firebase.auth().currentUser.uid;
+
+    var tokens = window.location.hash.substring(1);
+
+    this.userID = tokens.split('&')[0];
+    this.token = tokens.split('&')[1];
+    // console.log(this.token);
+    // this.userID = window.location.hash.substring(1);
 
     // console.log(key);
 

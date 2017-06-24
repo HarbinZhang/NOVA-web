@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NOVA</title>
+
+
+    <link rel='stylesheet' href='../functions/fullcalendar.css' />
+    <script src='../lib/jquery.min.js'></script>
+    <script src='../lib/moment.min.js'></script>
+    <script src='../functions/fullcalendar.js'></script>
+
+
+    <script src="/__/firebase/4.0.0/firebase-app.js"></script>
+    <script src="/__/firebase/4.0.0/firebase-auth.js"></script>
+    <script src="/__/firebase/4.0.0/firebase-database.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script type="text/javascript">
+
+
+        function checkSetup() {
+            if (!window.firebase || !(firebase.app instanceof Function) || !firebase.app().options) {
+                window.alert('You have not configured and imported the Firebase SDK. ' +
+                    'Make sure you go through the codelab setup instructions and make ' +
+                    'sure you are running the codelab using `firebase serve`');
+            }
+        };
+
+        checkSetup();
+
+        this.idToken = window.location.hash.substring(1);
+        firebase.auth().verifyIdToken(this.idToken).then(function(decodedToken){
+            console.log("success");
+        }).catch(function(error){
+            console.log("error:",error);
+        });
+
+        var doctorID = firebase.auth().currentUser.uid;
+//        var events = [];
+//        var appointmentRef = firebase.database().ref('doctors/'+doctorID+'/appointments');
+//        appointmentRef.on('value', function(snapshot){
+//            var event = snapshot.val();
+//            console.log(event);
+//        });
+
+
+        $(document).ready(function() {
+
+            // page is now ready, initialize the calendar...
+
+
+
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,basicWeek,basicDay'
+                },
+                eventLimit: true,
+                events: [
+                    {
+                        title: 'All Day Event',
+                        start: '2017-06-18'
+                    }]
+            })
+
+        });
+    </script>
+</head>
+<body>
+    <div id='calendar'></div>
+</body>
+</html>

@@ -31,12 +31,15 @@ function NOVA() {
   this.userName = document.getElementById('user-name');
   this.signInButton = document.getElementById('sign-in');
   this.signOutButton = document.getElementById('sign-out');
+
+  this.appointmentButton = document.getElementById('appointment');
   this.signInSnackbar = document.getElementById('must-signin-snackbar');
 
   // Saves message on form submit.
   // this.messageForm.addEventListener('submit', this.saveMessage.bind(this));
   this.signOutButton.addEventListener('click', this.signOut.bind(this));
   // this.signInButton.addEventListener('click', this.signIn.bind(this));
+    this.appointmentButton.addEventListener('click', this.toAppointment.bind(this));
 
   // Toggle for the button.
   // var buttonTogglingHandler = this.toggleButton.bind(this);
@@ -61,6 +64,7 @@ NOVA.prototype.initFirebase = function() {
     this.storage = firebase.storage();
     // Initiates Firebase auth and listen to auth state changes.
     this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
+    this.idToken = "";
 };
 
 
@@ -68,7 +72,7 @@ NOVA.prototype.initFirebase = function() {
 
 
 // Loads chat messages history and listens for upcoming ones.
-NOVA.prototype.loadMessages = function() {
+NOVA.prototype.loadMessages = function(token) {
     // Reference to the /messages/ database path.
     this.messagesRef = this.database.ref('messages');
     // Make sure we remove all previous listeners.
@@ -94,14 +98,14 @@ NOVA.prototype.loadMessages = function() {
 
     var setUsersInfo = function (data) {
         var val = data.val();
-        this.displayUserInfo(data.key, val.email, val.firstname, val.lastname);
+        this.displayUserInfo(data.key, val.email, val.firstname, val.lastname, token);
     }.bind(this);
     this.usersRef.on('child_added', setUsersInfo);
     this.usersRef.on('child_changed', setUsersInfo);
 };
 
 
-NOVA.prototype.displayUserInfo = function (key, email, firstname, lastname) {
+NOVA.prototype.displayUserInfo = function (key, email, firstname, lastname, token) {
     var div = document.getElementById(key);
     if(!div){
         var container = document.createElement('div');
@@ -115,13 +119,13 @@ NOVA.prototype.displayUserInfo = function (key, email, firstname, lastname) {
 
     messageElement.textContent = firstname + ' ' + lastname;
     messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
-    messageElement.href = "html/medicine.html#"+key;
+    messageElement.href = "html/medicine.html#"+key + "&" + token;
 
     setTimeout(function () {
         div.classList.add('visible')
     }, 1);
     this.messageList.scrollTop = this.messageList.scrollHeight;
-    this.messageInput.focus();
+    // this.messageInput.focus();
 };
 
 
@@ -218,6 +222,10 @@ NOVA.prototype.signOut = function() {
 };
 
 
+NOVA.prototype.toAppointment = function () {
+    window.location = "../html/appointment.html#" + this.idToken;
+}
+
 // Triggers when the auth state change for instance when the user signs-in or signs-out.
 NOVA.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
@@ -225,9 +233,28 @@ NOVA.prototype.onAuthStateChanged = function(user) {
     var profilePicUrl = user.photoUrl;   // TODO(DEVELOPER): Get profile pic.
     var userName = user.userName;        // TODO(DEVELOPER): Get user's name.
 
-      this.userID = firebase.auth().currentUser.uid;
+    this.userID = firebase.auth().currentUser.uid;
 
-    // Set the user's profile pic and name.
+    var self = this;
+
+    firebase.auth().currentUser.getToken(true).then(function(idToken){
+      // this.idToken = idToken;
+      // console.log(idToken);
+      //   this.idToken = " hi";
+        var token = idToken;
+        // this.loadMessages(token);
+        self.loadMessages(token);
+        console.log(token);
+        self.idToken = token;
+    }).catch(function(error){
+        console.log('failed:', error);
+    });
+
+    // this.idToken = token;
+      // console.log(this.idToken);
+
+
+      // Set the user's profile pic and name.
     this.userPic.style.backgroundImage = 'url(' + profilePicUrl + ')';
     this.userName.textContent = userName;
 
@@ -235,20 +262,25 @@ NOVA.prototype.onAuthStateChanged = function(user) {
     this.userName.removeAttribute('hidden');
     this.userPic.removeAttribute('hidden');
     this.signOutButton.removeAttribute('hidden');
+    this.appointmentButton.removeAttribute('hidden');
 
     // Hide sign-in button.
     this.signInButton.setAttribute('hidden', 'true');
 
     // We load currently existing chant messages.
-    this.loadMessages();
+
 
     // We save the Firebase Messaging Device token and enable notifications.
     this.saveMessagingDeviceToken();
+
+    // this.loadMessages();
+
   } else { // User is signed out!
     // Hide user's profile and sign-out button.
     this.userName.setAttribute('hidden', 'true');
     this.userPic.setAttribute('hidden', 'true');
     this.signOutButton.setAttribute('hidden', 'true');
+    this.appointmentButton.setAttribute('hidden', 'true');
 
     // Show sign-in button.
     this.signInButton.removeAttribute('hidden');
