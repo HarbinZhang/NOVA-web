@@ -241,6 +241,20 @@ main, #messages-card {
   padding:10px;
 }
 
+.medicine-delete{
+  background-color: antiquewhite;
+  width:5%;
+  float:left;
+  padding:10px;
+}
+
+.medicine-modify{
+  background-color: antiquewhite;
+  width:5%;
+  float:left;
+  padding:10px;
+}
+
 .after-box {
   clear: both;
 }

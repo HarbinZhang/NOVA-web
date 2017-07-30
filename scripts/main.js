@@ -33,6 +33,7 @@ function NOVA() {
   this.signOutButton = document.getElementById('sign-out');
 
   this.appointmentButton = document.getElementById('appointment');
+  this.settingButton = document.getElementById('setting');
   this.signInSnackbar = document.getElementById('must-signin-snackbar');
 
   // Saves message on form submit.
@@ -40,7 +41,7 @@ function NOVA() {
   this.signOutButton.addEventListener('click', this.signOut.bind(this));
   // this.signInButton.addEventListener('click', this.signIn.bind(this));
     this.appointmentButton.addEventListener('click', this.toAppointment.bind(this));
-
+    this.settingButton.addEventListener('click', this.toSetting.bind(this));
   // Toggle for the button.
   // var buttonTogglingHandler = this.toggleButton.bind(this);
   // this.messageInput.addEventListener('keyup', buttonTogglingHandler);
@@ -98,14 +99,14 @@ NOVA.prototype.loadMessages = function(token) {
 
     var setUsersInfo = function (data) {
         var val = data.val();
-        this.displayUserInfo(data.key, val.email, val.firstname, val.lastname, token);
+        this.displayUserInfo(data.key, val.email, val.firstname, val.lastname);
     }.bind(this);
     this.usersRef.on('child_added', setUsersInfo);
     this.usersRef.on('child_changed', setUsersInfo);
 };
 
 
-NOVA.prototype.displayUserInfo = function (key, email, firstname, lastname, token) {
+NOVA.prototype.displayUserInfo = function (key, email, firstname, lastname) {
     var div = document.getElementById(key);
     if(!div){
         var container = document.createElement('div');
@@ -119,7 +120,7 @@ NOVA.prototype.displayUserInfo = function (key, email, firstname, lastname, toke
 
     messageElement.textContent = firstname + ' ' + lastname;
     messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
-    messageElement.href = "html/medicine.html#"+key + "&" + token;
+    messageElement.href = "html/medicine.html#"+key;
 
     setTimeout(function () {
         div.classList.add('visible')
@@ -226,6 +227,10 @@ NOVA.prototype.toAppointment = function () {
     window.location = "../html/appointment.html#" + this.idToken;
 }
 
+NOVA.prototype.toSetting = function () {
+    window.location = "../html/setting.html";
+}
+
 // Triggers when the auth state change for instance when the user signs-in or signs-out.
 NOVA.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
@@ -244,7 +249,6 @@ NOVA.prototype.onAuthStateChanged = function(user) {
         var token = idToken;
         // this.loadMessages(token);
         self.loadMessages(token);
-        console.log(token);
         self.idToken = token;
     }).catch(function(error){
         console.log('failed:', error);
@@ -263,6 +267,7 @@ NOVA.prototype.onAuthStateChanged = function(user) {
     this.userPic.removeAttribute('hidden');
     this.signOutButton.removeAttribute('hidden');
     this.appointmentButton.removeAttribute('hidden');
+    this.settingButton.removeAttribute('hidden');
 
     // Hide sign-in button.
     this.signInButton.setAttribute('hidden', 'true');
@@ -281,6 +286,7 @@ NOVA.prototype.onAuthStateChanged = function(user) {
     this.userPic.setAttribute('hidden', 'true');
     this.signOutButton.setAttribute('hidden', 'true');
     this.appointmentButton.setAttribute('hidden', 'true');
+    this.settingButton.setAttribute('hidden', 'true');
 
     // Show sign-in button.
     this.signInButton.removeAttribute('hidden');

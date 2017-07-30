@@ -1,16 +1,4 @@
-<!doctype html>
-<!--
-  Copyright 2015 Google Inc. All rights reserved.
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-      https://www.apache.org/licenses/LICENSE-2.0
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License
--->
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -54,7 +42,70 @@
     <!--js-->
     <script src="/__/firebase/3.8.0/firebase.js"></script>
     <script src="/__/firebase/init.js"></script>
-    <script src="/../scripts/medicine.js"></script>
+
+    <script type="text/javascript">
+
+
+        function checkSetup() {
+            if (!window.firebase || !(firebase.app instanceof Function) || !firebase.app().options) {
+                window.alert('You have not configured and imported the Firebase SDK. ' +
+                    'Make sure you go through the codelab setup instructions and make ' +
+                    'sure you are running the codelab using `firebase serve`');
+            }
+        };
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function initApp() {
+
+            checkSetup();
+            var self = this;
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    self.uid = user.uid;
+
+                    this.setButton = document.getElementById('btn-time-set');
+
+                    this.setButton.addEventListener('click', setTime);
+
+
+
+
+                } else {
+
+                }
+
+            });
+
+
+        }
+
+
+        function setTime(){
+            var startTime = document.getElementById('et-time-start').value;
+            var endTime = document.getElementById('et-time-end').value;
+
+            var setTimeRef = firebase.database().ref('/doctors/'+self.uid);
+            setTimeRef.update({
+                startTime:startTime,
+                endTime:endTime
+            });
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
 
 
 </head>
@@ -89,40 +140,44 @@
         <div id="messages-card-container" class="mdl-cell mdl-cell--12-col mdl-grid">
 
             <!-- Messages container -->
-            <!--<div id="messages-card" class="mdl-card mdl-shadow&#45;&#45;2dp mdl-cell mdl-cell&#45;&#45;12-col mdl-cell&#45;&#45;6-col-tablet mdl-cell&#45;&#45;6-col-desktop">-->
-                <!--<div class="mdl-card__supporting-text mdl-color-text&#45;&#45;grey-600">-->
+            <div id="messages-card" class="mdl-card mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-cell--6-col-tablet mdl-cell--6-col-desktop">
+                <div class="mdl-card__supporting-text mdl-color-text--grey-600">
                     <div id="messages">
-                        <span id="message-filler"></span>
+                        <a>Available Time Start: </a>
+                        <input type="number" id="et-time-start" >
+                        <a>Available Time End: </a>
+                        <input type="number" id="et-time-end" placeholder="Time">
+                        <button id="btn-time-set">Set</button>
                     </div>
 
-                    <form id="medicine-info">
-                        <div class="medicine-container">
-                            <input class="medicine-name" type="text" id="et-medicine-name" placeholder="medicine name">
-                            <input class="medicine-strength" type="text" id="et-medicine-strength" placeholder="strength">
-                            <input class="medicine-duration" type="text" id="et-medicine-duration" placeholder="duration">
-                            <input class="medicine-period" type="text" id="et-medicine-period" placeholder="period">
-                            <input class="medicine-time" type="text" id="et-medicine-time" placeholder="time">
-                            <button id="add" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
-                                ADD
-                            </button>
-                        </div>
 
-                    </form>
+                    <!--<div id="dg" style="z-index: 9999; position: fixed ! important; left: 210px; top: 17px;">-->
+                    <div id="dg" style="z-index: 9999; position: fixed ! important; left: 210px; top: 17px;">
+
+                    </div>
+
+                    <!--<form id="message-form" action="#">-->
+                    <!--<div class="mdl-textfield mdl-js-textfield mdl-textfield&#45;&#45;floating-label">-->
+                    <!--<input class="mdl-textfield__input" type="text" id="message">-->
+                    <!--<label class="mdl-textfield__label" for="message">Typing here</label>-->
+                    <!--</div>-->
+                    <!--<button id="submit" disabled type="submit" class="mdl-button mdl-js-button mdl-button&#45;&#45;raised mdl-js-ripple-effect">-->
+                    <!--Create-->
+                    <!--</button>-->
+                    <!--</form>-->
                     <!--<form id="image-form" action="#">-->
                     <!--<input id="mediaCapture" type="file" accept="image/*,capture=camera">-->
                     <!--<button id="submitImage" title="Add an image" class="mdl-button mdl-js-button mdl-button&#45;&#45;raised mdl-js-ripple-effect mdl-color&#45;&#45;amber-400 mdl-color-text&#45;&#45;white">-->
                     <!--<i class="material-icons">image</i>-->
                     <!--</button>-->
                     <!--</form>-->
-                <!--</div>-->
-            <!--</div>-->
+                </div>
+            </div>
 
             <div id="must-signin-snackbar" class="mdl-js-snackbar mdl-snackbar">
                 <div class="mdl-snackbar__text"></div>
                 <button class="mdl-snackbar__action" type="button"></button>
             </div>
-
-
 
         </div>
     </main>

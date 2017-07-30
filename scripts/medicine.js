@@ -23,12 +23,10 @@ function medicine() {
 
     // var user = firebase.auth().currentUser.uid;
 
-    var tokens = window.location.hash.substring(1);
-
-    this.userID = tokens.split('&')[0];
-    this.token = tokens.split('&')[1];
-    // console.log(this.token);
     // this.userID = window.location.hash.substring(1);
+
+    // console.log(this.token);
+    this.userID = window.location.hash.substring(1);
 
     // console.log(key);
 
@@ -66,12 +64,7 @@ function medicine() {
     this.initFirebase();
 
 
-    this.curtIDRef = this.database.ref('/users/' + this.userID + '/curtID');
-    var self = this;
-    this.curtIDRef.on('value', function(snapshot){
-        self.curtID = snapshot.val();
-        console.log(self.curtID);
-    });
+
 
 }
 
@@ -101,11 +94,13 @@ medicine.prototype.loadMessages = function() {
     }.bind(this);
     this.medicineRef.on('child_added', setMedicineInfo);
     this.medicineRef.on('child_changed', setMedicineInfo);
+    // this.medicineRef.on('child_removed', setMedicineInfo);
 
 };
 
 
 medicine.prototype.dispayMedicineInfo = function (key, strength, duration, period, time) {
+
     var div = document.getElementById(key);
     if(!div){
         var container = document.createElement('div');
@@ -119,6 +114,95 @@ medicine.prototype.dispayMedicineInfo = function (key, strength, duration, perio
     div.querySelector('.medicine-duration').textContent = duration;
     div.querySelector('.medicine-period').textContent = period;
     div.querySelector('.medicine-time').textContent = time;
+    div.querySelector('.medicine-delete').setAttribute('id', key+'_delete');
+    div.querySelector('.medicine-delete').textContent = "delete";
+    div.querySelector('.medicine-modify').textContent = "modify";
+    div.querySelector('.medicine-modify').setAttribute('id', key+'_modify');
+
+    var self = this;
+
+    div.querySelector('.medicine-delete').addEventListener("click", function(){
+
+       firebase.database().ref('/users/' + self.userID + '/reminders/').child(key).remove();
+
+       div.remove();
+    });
+
+
+    div.querySelector('.medicine-modify').addEventListener("click", function(){
+
+
+        var div_edit = document.getElementById(key);
+        var container = document.createElement('div');
+        container.innerHTML = medicine.MEDICINE_MODIFY_TEMPLATE;
+        div_edit = container.firstChild;
+        div_edit.setAttribute('id', key);
+        div_edit.querySelector('.medicine-name').textContent = key;
+        div_edit.querySelector('.medicine-strength').setAttribute("value", strength);
+        div_edit.querySelector('.medicine-duration').setAttribute("value", duration);
+        div_edit.querySelector('.medicine-period').setAttribute("value", period);
+        div_edit.querySelector('.medicine-time').setAttribute("value", time);
+        div_edit.querySelector('.medicine-delete').setAttribute('id', key+'_ok');
+        div_edit.querySelector('.medicine-delete').textContent = "ok";
+        div_edit.querySelector('.medicine-modify').textContent = "cancel";
+        div_edit.querySelector('.medicine-modify').setAttribute('id', key+'_cancel');
+
+
+        div_edit.querySelector('.medicine-delete').addEventListener("click", function(){
+            var medicine = div_edit.querySelector('.medicine-name').textContent;
+            var strength = div_edit.querySelector('.medicine-strength').value;
+            var duration = div_edit.querySelector('.medicine-duration').value;
+            var period = div_edit.querySelector('.medicine-period').value;
+            var time = div_edit.querySelector('.medicine-time').value;
+
+            if (strength && duration && period && time && self.checkSignedInWithMessage()){
+                var today = new Date();
+                var dd = today.getDate();
+                var mm = today.getMonth()+1; //January is 0!
+                var yyyy = today.getFullYear();
+
+                console.log("in", duration);
+
+                if(dd<10) {
+                    dd = '0'+dd
+                }
+
+                if(mm<10) {
+                    mm = '0'+mm
+                }
+
+                today = yyyy + '-' + mm + '-' + dd;
+                self.database.ref('/users/' + self.userID + '/reminders/' + medicine).update({
+                    duration:parseInt(duration),
+                    medicine:medicine,
+                    period:parseInt(period),
+                    time:time,
+                    strength:strength,
+                    startTime:today
+                }).catch(function (error) {
+                    console.error('Error writing new medicine to Firebase Database', error);
+                });
+
+
+                div.querySelector('.medicine-strength').textContent = strength;
+                div.querySelector('.medicine-duration').textContent = duration;
+                div.querySelector('.medicine-period').textContent = period;
+                div.querySelector('.medicine-time').textContent = time;
+
+
+                self.messageList.replaceChild(div, div_edit);
+            }
+        });
+
+        div_edit.querySelector('.medicine-modify').addEventListener("click", function(){
+            self.messageList.replaceChild(div, div_edit);
+        });
+
+
+        self.messageList.replaceChild(div_edit, div);
+
+
+    });
 
     // var messageElement = div.querySelector('.message');
     //
@@ -160,14 +244,30 @@ medicine.prototype.saveMedicine = function (e) {
     e.preventDefault();
     if(this.medicineName.value && this.medicineStrength.value && this.medicineDuration.value &&
             this.medicinePeriod.value && this.medicineTime.value && this.checkSignedInWithMessage()){
-        console.log('ok');
+        // console.log('ok');
+
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth()+1; //January is 0!
+        var yyyy = today.getFullYear();
+
+        if(dd<10) {
+            dd = '0'+dd
+        }
+
+        if(mm<10) {
+            mm = '0'+mm
+        }
+
+        today = yyyy + '-' + mm + '-' + dd;
         this.database.ref('/users/' + this.userID + '/reminders/' + this.medicineName.value).set({
-            duration:this.medicineDuration.value,
-            name:this.medicineName.value,
-            period:this.medicinePeriod.value,
+            duration:parseInt(this.medicineDuration.value),
+            medicine:this.medicineName.value,
+            period:parseInt(this.medicinePeriod.value),
             time:this.medicineTime.value,
             strength:this.medicineStrength.value,
-            alarmId:{0:'false',1:this.curtID}
+            alarmId:{0:-1,1:this.curtID},
+            startTime:today
         }).then(function () {
             this.database.ref('/users/' + this.userID).update({
                 curtID:this.curtID+10
@@ -257,6 +357,13 @@ medicine.prototype.onAuthStateChanged = function(user) {
         var userName = user.userName;        // TODO(DEVELOPER): Get user's name.
 
 
+        this.curtIDRef = this.database.ref('/users/' + this.userID + '/curtID');
+        var self = this;
+        this.curtIDRef.on('value', function(snapshot){
+            self.curtID = snapshot.val();
+        });
+
+
         // Set the user's profile pic and name.
         this.userPic.style.backgroundImage = 'url(' + profilePicUrl + ')';
         this.userName.textContent = userName;
@@ -274,6 +381,8 @@ medicine.prototype.onAuthStateChanged = function(user) {
 
         // We save the Firebase Messaging Device token and enable notifications.
         this.saveMessagingDeviceToken();
+
+
     } else { // User is signed out!
         // Hide user's profile and sign-out button.
         this.userName.setAttribute('hidden', 'true');
@@ -326,9 +435,25 @@ medicine.MESSAGE_TEMPLATE =
     '<div class="medicine-duration"></div>' +
     '<div class="medicine-period"></div>' +
     '<div class="medicine-time"></div>' +
+    '<button class="medicine-delete"></button>' +
+    '<button class="medicine-modify"></button>'
     '</div>' +
     '<br class="after-box"/>' +
     '<br class="after-box"/>';
+
+medicine.MEDICINE_MODIFY_TEMPLATE =
+    '<div class="medicine-container">' +
+    '<div class="medicine-name"></div>' +
+    '<input type="text" class="medicine-strength"></input>' +
+    '<input type="text" class="medicine-duration"></input>' +
+    '<input type="text" class="medicine-period"></input>' +
+    '<input type="text" class="medicine-time"></input>' +
+    '<button class="medicine-delete"></button>' +
+    '<button class="medicine-modify"></button>'
+    '</div>' +
+    '<br class="after-box"/>' +
+    '<br class="after-box"/>';
+
 
 // medicine.MESSAGE_TEMPLATE =
 //     '<div class="medicine-container">' +

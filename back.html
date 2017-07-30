@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script type="text/javascript">
+
+
+
+
+        function initApp(){
+            var params = window.location.href;
+            var code = getParameterByName("code");
+            console.log("code is " + code);
+            this.codeContainer = document.getElementById("code");
+            this.codeContainer.innerHTML = code;
+        }
+
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        function setTime(){
+            var startTime = document.getElementById('et-time-start').value;
+            var endTime = document.getElementById('et-time-end').value;
+
+            var setTimeRef = firebase.database().ref('/doctors/'+self.uid);
+            setTimeRef.update({
+                startTime:startTime,
+                endTime:endTime
+            });
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+
+    </script>
+
+</head>
+<body>
+    <div id="code"></div>
+</body>
+</html>

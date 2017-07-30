@@ -5,16 +5,16 @@
     <title>NOVA</title>
 
 
-    <link rel='stylesheet' href='../functions/fullcalendar.css' />
+    <link rel='stylesheet' href='../styles/fullcalendar.css' />
     <script src='../lib/jquery.min.js'></script>
     <script src='../lib/moment.min.js'></script>
-    <script src='../functions/fullcalendar.js'></script>
-
+    <script src='../scripts/fullcalendar.js'></script>
 
     <script src="/__/firebase/4.0.0/firebase-app.js"></script>
     <script src="/__/firebase/4.0.0/firebase-auth.js"></script>
     <script src="/__/firebase/4.0.0/firebase-database.js"></script>
     <script src="/__/firebase/init.js"></script>
+
     <script type="text/javascript">
 
 
@@ -28,14 +28,17 @@
 
         checkSetup();
 
-        this.idToken = window.location.hash.substring(1);
-        firebase.auth().verifyIdToken(this.idToken).then(function(decodedToken){
-            console.log("success");
-        }).catch(function(error){
-            console.log("error:",error);
-        });
+        var self = this;
 
-        var doctorID = firebase.auth().currentUser.uid;
+
+
+//        this.idToken = window.location.hash.substring(1);
+//        firebase.auth().verifyIdToken(this.idToken).then( function(decodedToken){
+//            console.log("success");
+//        }).catch(function(error){
+//            console.log("error:",error);
+//        });
+
 //        var events = [];
 //        var appointmentRef = firebase.database().ref('doctors/'+doctorID+'/appointments');
 //        appointmentRef.on('value', function(snapshot){
@@ -43,6 +46,7 @@
 //            console.log(event);
 //        });
 
+        this.events = [];
 
         $(document).ready(function() {
 
@@ -57,17 +61,91 @@
                     right: 'month,basicWeek,basicDay'
                 },
                 eventLimit: true,
-                events: [
-                    {
-                        title: 'All Day Event',
-                        start: '2017-06-18'
-                    }]
+                events: this.events
             })
 
         });
+
+
+        function displayAppointments(key, firstname, lastname, startDay, startMonth, startYear, startTime){
+            var month_str = startMonth.toString();
+            var day_str = startDay.toString();
+            var time_str = startTime.toString();
+            if (startMonth < 10){
+                month_str = '0' + month_str;
+            }
+            if (startDay < 10){
+                day_str = '0' + day_str;
+            }
+            if (startTime < 10){
+                time_str = '0' + time_str;
+            }
+            var event = {title: firstname + ' ' + lastname,
+                        start:startYear.toString() + '-' + month_str + '-' + day_str +
+                            'T' + time_str + ':00:00',
+//                start:'2017-06-29T12:30:00',
+                allDay:false
+                        };
+
+            if(!this.events.includes(event)){
+                this.events.push(event);
+            }
+
+//            console.log(event);
+
+//            $('#calendar').fullCalendar( 'removeEvent');
+            $('#calendar').fullCalendar('addEventSource', [event]);
+
+        }
+
+
+
+        function loadMessage(){
+            var appointmentsRef = firebase.database().ref('/doctors/' + self.uid + '/appointments/');
+
+            var setAppointments = function (data){
+                var val = data.val();
+                displayAppointments(data.key, val.firstname, val.lastname, val.startDay, val.startMonth,
+                        val.startYear, val.startTime);
+            }.bind(this);
+
+            appointmentsRef.on('child_added', setAppointments);
+            appointmentsRef.on('child_removed', setAppointments);
+//            appointmentsRef.on('child_changed', setAppointments);
+        }
+
+        function initApp() {
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    self.uid = user.uid;
+
+
+
+                    loadMessage();
+                } else {
+
+                }
+
+            });
+
+
+        }
+
+
+
+        window.onload = function() {
+            initApp();
+        };
     </script>
 </head>
 <body>
     <div id='calendar'></div>
+
+    <!--<div id="dg" style="z-index: 9999; position: fixed ! important; left: 210px; top: 17px;">-->
+    <div id="dg" style="z-index: 9999; position: fixed ! important; left: 210px; top: 17px;">
+        <input type="time" id="et-time-start" placeholder="Time">
+        <input type="time" id="et-time-end" placeholder="Time">
+        <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white" id="btn-time-set" name="time-set">Set</button>
+    </div>
 </body>
 </html>
