@@ -95,7 +95,7 @@
             var startTime = document.getElementById('et-time-start').value;
             var endTime = document.getElementById('et-time-end').value;
 
-            var setTimeRef = firebase.database().ref('/doctors/'+self.uid);
+            var setTimeRef = firebase.database().ref('/doctors/'+self.uid+'/availableTime');
             setTimeRef.update({
                 startTime:startTime,
                 endTime:endTime

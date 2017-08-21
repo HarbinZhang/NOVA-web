@@ -210,7 +210,7 @@ main, #messages-card {
 
 .medicine-name{
   background-color: #0288D1;
-  width:20%;
+  width:10%;
   float:left;
   padding:10px;
 }
@@ -235,6 +235,13 @@ main, #messages-card {
 }
 
 .medicine-time{
+  background-color: antiquewhite;
+  width:10%;
+  float:left;
+  padding:10px;
+}
+
+.medicine-eaten{
   background-color: antiquewhite;
   width:10%;
   float:left;

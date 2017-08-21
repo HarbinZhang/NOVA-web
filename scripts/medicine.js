@@ -90,8 +90,10 @@ medicine.prototype.loadMessages = function() {
 
     var setMedicineInfo = function (data){
         var val = data.val();
-        this.dispayMedicineInfo(data.key, val.strength, val.duration, val.period, val.time);
+        this.dispayMedicineInfo(data.key, val.strength, val.duration, val.period, val.time, val.eatenLog);
     }.bind(this);
+
+
     this.medicineRef.on('child_added', setMedicineInfo);
     this.medicineRef.on('child_changed', setMedicineInfo);
     // this.medicineRef.on('child_removed', setMedicineInfo);
@@ -99,7 +101,7 @@ medicine.prototype.loadMessages = function() {
 };
 
 
-medicine.prototype.dispayMedicineInfo = function (key, strength, duration, period, time) {
+medicine.prototype.dispayMedicineInfo = function (key, strength, duration, period, time, eatenLog) {
 
     var div = document.getElementById(key);
     if(!div){
@@ -109,11 +111,24 @@ medicine.prototype.dispayMedicineInfo = function (key, strength, duration, perio
         div.setAttribute('id', key);
         this.messageList.appendChild(div);
     }
+
+    var eaten = "";
+    for (var i = 0; i < eatenLog.length; i++){
+        if (eatenLog[i]==-1){
+            eaten += "N ";
+        }else if (eatenLog[i] == 1){
+            eaten += "Y ";
+        }
+    }
+
+    console.log(eaten);
+
     div.querySelector('.medicine-name').textContent = key;
     div.querySelector('.medicine-strength').textContent = strength;
     div.querySelector('.medicine-duration').textContent = duration;
     div.querySelector('.medicine-period').textContent = period;
     div.querySelector('.medicine-time').textContent = time;
+    div.querySelector('.medicine-eaten').textContent = eaten;
     div.querySelector('.medicine-delete').setAttribute('id', key+'_delete');
     div.querySelector('.medicine-delete').textContent = "delete";
     div.querySelector('.medicine-modify').textContent = "modify";
@@ -260,14 +275,22 @@ medicine.prototype.saveMedicine = function (e) {
         }
 
         today = yyyy + '-' + mm + '-' + dd;
+
+        var eaten_queue = [];
+        for(var i = 0; i < 7; i++){
+            eaten_queue.push(-1);
+        }
+
         this.database.ref('/users/' + this.userID + '/reminders/' + this.medicineName.value).set({
             duration:parseInt(this.medicineDuration.value),
             medicine:this.medicineName.value,
             period:parseInt(this.medicinePeriod.value),
             time:this.medicineTime.value,
             strength:this.medicineStrength.value,
-            alarmId:{0:-1,1:this.curtID},
-            startTime:today
+            alarmId:this.curtID,
+            sync:false,
+            startTime:today,
+            eatenLog:eaten_queue
         }).then(function () {
             this.database.ref('/users/' + this.userID).update({
                 curtID:this.curtID+10
@@ -435,6 +458,7 @@ medicine.MESSAGE_TEMPLATE =
     '<div class="medicine-duration"></div>' +
     '<div class="medicine-period"></div>' +
     '<div class="medicine-time"></div>' +
+    '<div class="medicine-eaten"></div>' +
     '<button class="medicine-delete"></button>' +
     '<button class="medicine-modify"></button>'
     '</div>' +
