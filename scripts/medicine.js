@@ -44,6 +44,9 @@ function medicine() {
     this.signOutButton = document.getElementById('sign-out');
     this.signInSnackbar = document.getElementById('must-signin-snackbar');
 
+    this.refreshButton = document.getElementById('refresh');
+
+
     this.addButton = document.getElementById('add');
     this.medicineName = document.getElementById('et-medicine-name');
     this.medicineStrength = document.getElementById('et-medicine-strength');
@@ -57,13 +60,12 @@ function medicine() {
     // this.signInButton.addEventListener('click', this.signIn.bind(this));
     this.addButton.addEventListener('click', this.saveMedicine.bind(this));
 
+    this.refreshButton.addEventListener('click', this.loadEaten.bind(this));
     // Toggle for the button.
     // var buttonTogglingHandler = this.toggleButton.bind(this);
     // this.messageInput.addEventListener('keyup', buttonTogglingHandler);
     // this.messageInput.addEventListener('change', buttonTogglingHandler);
     this.initFirebase();
-
-
 
 
 }
@@ -79,18 +81,45 @@ medicine.prototype.initFirebase = function() {
 };
 
 
+medicine.prototype.loadEaten = function() {
+    this.eatenRef = this.database.ref('/users/' + this.userID + '/reminders/eaten');
 
+
+    var setEatenInfo = function(data){
+        var val = data.val();
+        console.log(val);
+        // console.log(data.key);
+        var medicineDiv = document.getElementById(data.key);
+        // console.log(medicineDiv);
+
+
+        var eaten = "";
+        for (var i = 0; i < val.length; i++){
+            if (val[i]==-1){
+                eaten += "N ";
+            }else if (val[i] == 1){
+                eaten += "Y ";
+            }
+        }
+
+
+        medicineDiv.querySelector('.medicine-eaten').textContent = eaten;
+    }.bind(this);
+
+    this.eatenRef.on('child_added', setEatenInfo);
+    this.eatenRef.on('child_changed', setEatenInfo);
+}
 
 
 // Loads chat messages history and listens for upcoming ones.
 medicine.prototype.loadMessages = function() {
 
 
-    this.medicineRef = this.database.ref('/users/' + this.userID + '/reminders');
+    this.medicineRef = this.database.ref('/users/' + this.userID + '/reminders/info');
 
     var setMedicineInfo = function (data){
         var val = data.val();
-        this.dispayMedicineInfo(data.key, val.strength, val.duration, val.period, val.time, val.eatenLog);
+        this.dispayMedicineInfo(data.key, val.strength, val.duration, val.period, val.time);
     }.bind(this);
 
 
@@ -101,7 +130,7 @@ medicine.prototype.loadMessages = function() {
 };
 
 
-medicine.prototype.dispayMedicineInfo = function (key, strength, duration, period, time, eatenLog) {
+medicine.prototype.dispayMedicineInfo = function (key, strength, duration, period, time) {
 
     var div = document.getElementById(key);
     if(!div){
@@ -112,23 +141,16 @@ medicine.prototype.dispayMedicineInfo = function (key, strength, duration, perio
         this.messageList.appendChild(div);
     }
 
-    var eaten = "";
-    for (var i = 0; i < eatenLog.length; i++){
-        if (eatenLog[i]==-1){
-            eaten += "N ";
-        }else if (eatenLog[i] == 1){
-            eaten += "Y ";
-        }
-    }
 
-    console.log(eaten);
+
+    // console.log(eaten);
 
     div.querySelector('.medicine-name').textContent = key;
     div.querySelector('.medicine-strength').textContent = strength;
     div.querySelector('.medicine-duration').textContent = duration;
     div.querySelector('.medicine-period').textContent = period;
     div.querySelector('.medicine-time').textContent = time;
-    div.querySelector('.medicine-eaten').textContent = eaten;
+    // div.querySelector('.medicine-eaten').textContent = eaten;
     div.querySelector('.medicine-delete').setAttribute('id', key+'_delete');
     div.querySelector('.medicine-delete').textContent = "delete";
     div.querySelector('.medicine-modify').textContent = "modify";
@@ -138,7 +160,8 @@ medicine.prototype.dispayMedicineInfo = function (key, strength, duration, perio
 
     div.querySelector('.medicine-delete').addEventListener("click", function(){
 
-       firebase.database().ref('/users/' + self.userID + '/reminders/').child(key).remove();
+       firebase.database().ref('/users/' + self.userID + '/reminders/info').child(key).remove();
+       firebase.database().ref('/users/' + self.userID + '/reminders/eaten').child(key).remove();
 
        div.remove();
     });
@@ -187,7 +210,7 @@ medicine.prototype.dispayMedicineInfo = function (key, strength, duration, perio
                 }
 
                 today = yyyy + '-' + mm + '-' + dd;
-                self.database.ref('/users/' + self.userID + '/reminders/' + medicine).update({
+                self.database.ref('/users/' + self.userID + '/reminders/info/' + medicine).update({
                     duration:parseInt(duration),
                     medicine:medicine,
                     period:parseInt(period),
@@ -281,7 +304,7 @@ medicine.prototype.saveMedicine = function (e) {
             eaten_queue.push(-1);
         }
 
-        this.database.ref('/users/' + this.userID + '/reminders/' + this.medicineName.value).set({
+        this.database.ref('/users/' + this.userID + '/reminders/info/' + this.medicineName.value).set({
             duration:parseInt(this.medicineDuration.value),
             medicine:this.medicineName.value,
             period:parseInt(this.medicinePeriod.value),
@@ -289,8 +312,8 @@ medicine.prototype.saveMedicine = function (e) {
             strength:this.medicineStrength.value,
             alarmId:this.curtID,
             sync:false,
-            startTime:today,
-            eatenLog:eaten_queue
+            startTime:today
+            // eatenLog:eaten_queue
         }).then(function () {
             this.database.ref('/users/' + this.userID).update({
                 curtID:this.curtID+10
@@ -298,6 +321,22 @@ medicine.prototype.saveMedicine = function (e) {
         }.bind(this)).catch(function (error) {
             console.error('Error writing new medicine to Firebase Database', error);
         });
+
+
+
+        this.database.ref('users/' + this.userID + '/reminders/eaten/' + this.medicineName.value).set({
+            0:-1,
+            1:-1,
+            2:-1,
+            3:-1,
+            4:-1,
+            5:-1,
+            6:-1
+        }).catch(function (error) {
+            console.error('Error writing new medicine to Firebase Database', error)
+        });
+
+
     }
 }
 
@@ -402,6 +441,9 @@ medicine.prototype.onAuthStateChanged = function(user) {
         // We load currently existing chant messages.
         this.loadMessages();
 
+
+        // this.loadEaten();
+
         // We save the Firebase Messaging Device token and enable notifications.
         this.saveMessagingDeviceToken();
 
@@ -458,7 +500,7 @@ medicine.MESSAGE_TEMPLATE =
     '<div class="medicine-duration"></div>' +
     '<div class="medicine-period"></div>' +
     '<div class="medicine-time"></div>' +
-    '<div class="medicine-eaten"></div>' +
+    '<div class="medicine-eaten">Need Refresh</div>' +
     '<button class="medicine-delete"></button>' +
     '<button class="medicine-modify"></button>'
     '</div>' +
