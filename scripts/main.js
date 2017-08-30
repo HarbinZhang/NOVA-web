@@ -31,6 +31,7 @@ function NOVA() {
   this.userName = document.getElementById('user-name');
   this.signInButton = document.getElementById('sign-in');
   this.signOutButton = document.getElementById('sign-out');
+  this.videocallButton = document.getElementById('videocall');
 
   this.appointmentButton = document.getElementById('appointment');
   this.settingButton = document.getElementById('setting');
@@ -42,6 +43,7 @@ function NOVA() {
   // this.signInButton.addEventListener('click', this.signIn.bind(this));
     this.appointmentButton.addEventListener('click', this.toAppointment.bind(this));
     this.settingButton.addEventListener('click', this.toSetting.bind(this));
+    this.videocallButton.addEventListener('click', this.toVideoCall.bind(this));
   // Toggle for the button.
   // var buttonTogglingHandler = this.toggleButton.bind(this);
   // this.messageInput.addEventListener('keyup', buttonTogglingHandler);
@@ -229,6 +231,10 @@ NOVA.prototype.toAppointment = function () {
 
 NOVA.prototype.toSetting = function () {
     window.location = "../html/setting.html";
+}
+
+NOVA.prototype.toVideoCall = function (){
+    window.location = "http://192.168.0.105:3000";
 }
 
 // Triggers when the auth state change for instance when the user signs-in or signs-out.
